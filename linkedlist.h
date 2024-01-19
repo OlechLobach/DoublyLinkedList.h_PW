@@ -1,3 +1,6 @@
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
+
 #include <iostream>
 #include <cstddef>
 using namespace std;
@@ -232,3 +235,4 @@ public:
         }
     }
 };
+#endif
