@@ -6,8 +6,9 @@ using namespace std;
 
 template <typename T>
 class DoublyLinkedList {
-private:
-    struct Node {
+public:
+    class Node {
+    public:
         T data;
         Node* prev;
         Node* next;
@@ -15,6 +16,7 @@ private:
         Node(const T& value) : data(value), prev(nullptr), next(nullptr) {}
     };
 
+private:
     Node* head;
     Node* tail;
 
@@ -122,7 +124,6 @@ public:
         deleteAll();
     }
 };
-
 
 template <typename T>
 ostream& operator<<(ostream& os, const typename DoublyLinkedList<T>::Node& node) {
