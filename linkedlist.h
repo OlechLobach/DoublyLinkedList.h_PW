@@ -4,7 +4,6 @@
 #include <iostream>
 using namespace std;
 
-
 template <typename T>
 class DoublyLinkedList {
 private:
@@ -87,26 +86,60 @@ public:
         Node* current = head;
         while (current) {
             cout << "Data: " << current->data;
-
             if (current->prev) {
-                cout << " | Prev: " << current->prev;
+                cout << ", Prev: " << current->prev;
             }
             else {
-                cout << " | Prev: nullptr";
+                cout << ", Prev: nullptr";
             }
-
             if (current->next) {
-                cout << " | Next: " << current->next;
+                cout << ", Next: " << current->next;
             }
             else {
-                cout << " | Next: nullptr";
+                cout << ", Next: nullptr";
             }
-
-            cout << endl << "--------" << endl;
-
+            cout << endl;
             current = current->next;
         }
     }
+
+    Node* getPrev(Node* node) const { return node ? node->prev : nullptr; }
+    Node* getNext(Node* node) const { return node ? node->next : nullptr; }
+
+    void setPrev(Node* node, Node* prev) {
+        if (node) {
+            node->prev = prev;
+        }
+    }
+
+    void setNext(Node* node, Node* next) {
+        if (node) {
+            node->next = next;
+        }
+    }
+
+    ~DoublyLinkedList() {
+        deleteAll();
+    }
 };
 
-#endif
+
+template <typename T>
+ostream& operator<<(ostream& os, const typename DoublyLinkedList<T>::Node& node) {
+    os << "Data: " << node.data;
+    if (node.prev) {
+        os << ", Prev: " << node.prev;
+    }
+    else {
+        os << ", Prev: nullptr";
+    }
+    if (node.next) {
+        os << ", Next: " << node.next;
+    }
+    else {
+        os << ", Next: nullptr";
+    }
+    return os;
+}
+
+#endif 
