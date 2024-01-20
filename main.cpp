@@ -1,28 +1,16 @@
 #include"linkedlist.h"
-
-
 int main() {
-    DoublyLinkedList<int> myList;
+    DoublyLinkedList<int> myList1;
+    myList1.addToHead(3);
+    myList1.addToHead(2);
+    myList1.addToHead(1);
 
-    myList.addToHead(3);
-    myList.addToHead(2);
-    myList.addToHead(1);
+    char userChoice;
+    do {
+        userChoice = displayMenu();
+        performOperation(myList1, userChoice);
 
-    myList.show(); 
-
-    myList.addToTail(4);
-    myList.addToTail(5);
-
-    myList.show(); 
-
-    myList.deleteFromHead();
-    myList.deleteFromTail();
-
-    myList.show(); 
-
-    myList.deleteAll();
-
-    myList.show(); 
+    } while (userChoice != '5');
 
     return 0;
 }

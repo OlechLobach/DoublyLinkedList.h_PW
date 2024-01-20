@@ -87,36 +87,74 @@ public:
     void show() const {
         Node* current = head;
         while (current) {
-            cout << "Data: " << current->data;
-            if (current->prev) {
-                cout << ", Prev: " << current->prev;
-            }
-            else {
-                cout << ", Prev: nullptr";
-            }
-            if (current->next) {
-                cout << ", Next: " << current->next;
-            }
-            else {
-                cout << ", Next: nullptr";
-            }
-            cout << endl;
+            cout << current->data << " ";
             current = current->next;
         }
+        cout << endl;
     }
 
-    Node* getPrev(Node* node) const { return node ? node->prev : nullptr; }
-    Node* getNext(Node* node) const { return node ? node->next : nullptr; }
+    DoublyLinkedList<T>* cloneList() const {
+        DoublyLinkedList<T>* clonedList = new DoublyLinkedList<T>();
+        Node* current = head;
 
-    void setPrev(Node* node, Node* prev) {
-        if (node) {
-            node->prev = prev;
+        while (current) {
+            clonedList->addToTail(current->data);
+            current = current->next;
         }
+
+        return clonedList;
     }
 
-    void setNext(Node* node, Node* next) {
-        if (node) {
-            node->next = next;
+    DoublyLinkedList<T>* operator+(const DoublyLinkedList<T>& otherList) const {
+        DoublyLinkedList<T>* combinedList = new DoublyLinkedList<T>();
+
+        Node* currentThis = head;
+        while (currentThis) {
+            combinedList->addToTail(currentThis->data);
+            currentThis = currentThis->next;
+        }
+
+        Node* currentOther = otherList.head;
+        while (currentOther) {
+            combinedList->addToTail(currentOther->data);
+            currentOther = currentOther->next;
+        }
+
+        return combinedList;
+    }
+
+    DoublyLinkedList<T>* operator*(const DoublyLinkedList<T>& otherList) const {
+        DoublyLinkedList<T>* commonElementsList = new DoublyLinkedList<T>();
+
+        Node* currentThis = head;
+        while (currentThis) {
+            Node* currentOther = otherList.head;
+            while (currentOther) {
+                if (currentThis->data == currentOther->data) {
+                    commonElementsList->addToTail(currentThis->data);
+                    break;
+                }
+                currentOther = currentOther->next;
+            }
+            currentThis = currentThis->next;
+        }
+
+        return commonElementsList;
+    }
+
+    void reverseList() {
+        Node* current = head;
+        Node* temp = nullptr;
+
+        while (current) {
+            temp = current->prev;
+            current->prev = current->next;
+            current->next = temp;
+            current = current->prev;
+        }
+
+        if (temp) {
+            head = temp->prev;
         }
     }
 
@@ -129,18 +167,97 @@ template <typename T>
 ostream& operator<<(ostream& os, const typename DoublyLinkedList<T>::Node& node) {
     os << "Data: " << node.data;
     if (node.prev) {
-        os << ", Prev: " << node.prev;
+        os << ", Prev: " << node.prev->data;
     }
     else {
         os << ", Prev: nullptr";
     }
     if (node.next) {
-        os << ", Next: " << node.next;
+        os << ", Next: " << node.next->data;
     }
     else {
         os << ", Next: nullptr";
     }
     return os;
+}
+
+
+char displayMenu() {
+    cout << "Menu:\n";
+    cout << "1. Clone List\n";
+    cout << "2. Combine Lists\n";
+    cout << "3. Find Common Elements\n";
+    cout << "4. Reverse List\n";
+    cout << "5. Exit\n";
+    cout << "Enter your choice: ";
+
+    char choice;
+    cin >> choice;
+    return choice;
+}
+
+template <typename T>
+void performOperation(DoublyLinkedList<T>& originalList, char operation) {
+    cout << "Original List: ";
+    originalList.show();
+
+    switch (operation) {
+    case '1': {
+
+        DoublyLinkedList<T>* clonedList = originalList.cloneList();
+        cout << "Cloned List: ";
+        clonedList->show();
+        delete clonedList;
+        break;
+    }
+    case '2': {
+
+        DoublyLinkedList<T> otherList;
+        otherList.addToTail(4);
+        otherList.addToTail(5);
+
+        cout << "Other List: ";
+        otherList.show();
+
+        DoublyLinkedList<T>* combinedList = originalList + otherList;
+        cout << "Combined List: ";
+        combinedList->show();
+        delete combinedList;
+        break;
+    }
+    case '3': {
+
+        DoublyLinkedList<T> otherList;
+        otherList.addToTail(2);
+        otherList.addToTail(3);
+        otherList.addToTail(4);
+
+        cout << "Other List: ";
+        otherList.show();
+
+        DoublyLinkedList<T>* commonElementsList = originalList * otherList;
+        cout << "Common Elements List: ";
+        commonElementsList->show();
+        delete commonElementsList;
+        break;
+    }
+    case '4':
+
+        originalList.reverseList();
+        cout << "Reversed List: ";
+        originalList.show();
+        break;
+    case '5':
+
+        cout << "Exiting...\n";
+        break;
+    default:
+        cout << "Invalid choice\n";
+    }
+
+    cout << "Modified List: ";
+    originalList.show();
+    cout << "------------------------------------\n";
 }
 
 #endif 
