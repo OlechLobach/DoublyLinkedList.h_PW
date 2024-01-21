@@ -1,146 +1,251 @@
-#ifndef LINKEDLIST_H
-#define LINKEDLIST_H
+#ifndef linkedlist_h
+#define linkedlist_h
 
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 template <typename T>
-class DoublyLinkedList {
-public:
+class Array {
+private:
     class Node {
     public:
         T data;
-        Node* prev;
         Node* next;
-
-        Node(const T& value) : data(value), prev(nullptr), next(nullptr) {}
+        Node* prev;
+        Node(const T& value) : data(value), next(nullptr), prev(nullptr) {}
     };
 
-private:
     Node* head;
     Node* tail;
+    int size;
+    int capacity;
+    int grow;
 
 public:
-    DoublyLinkedList() : head(nullptr), tail(nullptr) {}
+    Array(int initialCapacity = 10, int initialGrow = 1)
+        : head(nullptr), tail(nullptr), size(0), capacity(initialCapacity), grow(initialGrow) {
+        initialize();
+    }
 
-    void addToHead(const T& value) {
-        Node* newNode = new Node(value);
-        if (!head) {
-            head = tail = newNode;
+    ~Array() {
+        clear();
+    }
+
+    int GetSize() const {
+        return size;
+    }
+
+    void SetSize(int newSize, int newGrow = 1) {
+        if (newSize > capacity) {
+            reserve(newSize + newGrow);
+            grow = newGrow;
         }
         else {
-            newNode->next = head;
-            head->prev = newNode;
-            head = newNode;
+            removeExcess();
         }
     }
 
-    void addToTail(const T& value) {
+    int GetUpperBound() const {
+        return size - 1;
+    }
+
+    bool IsEmpty() const {
+        return size == 0;
+    }
+
+    void FreeExtra() {
+        reserve(size);
+    }
+
+    void RemoveAll() {
+        clear();
+        initialize();
+    }
+
+    T GetAt(int index) const {
+        if (index >= 0 && index < size) {
+            return getNode(index)->data;
+        }
+
+        throw out_of_range("Index out of bounds");
+    }
+
+    void SetAt(int index, const T& value) {
+        if (index >= 0 && index < size) {
+            getNode(index)->data = value;
+        }
+        else {
+            throw out_of_range("Index out of bounds");
+        }
+    }
+
+    T& operator[](int index) {
+        if (index >= 0 && index < size) {
+            return getNode(index)->data;
+        }
+        throw out_of_range("Index out of bounds");
+    }
+
+    void Add(const T& value) {
+        if (size == capacity) {
+            reserve(size + grow);
+        }
         Node* newNode = new Node(value);
-        if (!tail) {
+        if (tail == nullptr) {
             head = tail = newNode;
         }
         else {
-            newNode->prev = tail;
             tail->next = newNode;
+            newNode->prev = tail;
             tail = newNode;
         }
+        size++;
     }
 
-    void deleteFromHead() {
-        if (head) {
-            Node* temp = head;
-            head = head->next;
-            if (head) {
-                head->prev = nullptr;
+    void Append(const Array& other) {
+        for (int i = 0; i < other.size; i++) {
+            Add(other.GetAt(i));
+        }
+    }
+
+    Array& operator=(const Array& other) {
+        if (this != &other) {
+            clear();
+            Append(other);
+        }
+        return *this;
+    }
+
+    T* GetData() const {
+        T* data = new T[size];
+        for (int i = 0; i < size; i++) {
+            data[i] = GetAt(i);
+        }
+        return data;
+    }
+
+    void InsertAt(int index, const T& value) {
+        if (index >= 0 && index <= size) {
+            if (size == capacity) {
+                reserve(size + grow);
+            }
+            Node* newNode = new Node(value);
+            if (index == 0) {
+                newNode->next = head;
+                head->prev = newNode;
+                head = newNode;
+            }
+            else if (index == size) {
+                tail->next = newNode;
+                newNode->prev = tail;
+                tail = newNode;
             }
             else {
-                tail = nullptr;
+                Node* current = getNode(index);
+                newNode->prev = current->prev;
+                newNode->next = current;
+                current->prev->next = newNode;
+                current->prev = newNode;
             }
-            delete temp;
+            size++;
+        }
+        else {
+            throw out_of_range("Index out of bounds");
         }
     }
 
-    void deleteFromTail() {
-        if (tail) {
-            Node* temp = tail;
-            tail = tail->prev;
-            if (tail) {
-                tail->next = nullptr;
-            }
-            else {
-                head = nullptr;
-            }
-            delete temp;
-        }
-    }
-
-    void deleteAll() {
-        while (head) {
-            Node* temp = head;
-            head = head->next;
-            delete temp;
-        }
-        tail = nullptr;
-    }
-
-    void show() const {
-        Node* current = head;
-        while (current) {
-            cout << "Data: " << current->data;
+    void RemoveAt(int index) {
+        if (index >= 0 && index < size) {
+            Node* current = getNode(index);
             if (current->prev) {
-                cout << ", Prev: " << current->prev;
+                current->prev->next = current->next;
             }
             else {
-                cout << ", Prev: nullptr";
+                head = current->next;
             }
             if (current->next) {
-                cout << ", Next: " << current->next;
+                current->next->prev = current->prev;
             }
             else {
-                cout << ", Next: nullptr";
+                tail = current->prev;
             }
-            cout << endl;
+            delete current;
+            size--;
+            removeExcess();
+        }
+        else {
+            throw out_of_range("Index out of bounds");
+        }
+    }
+
+    void PrintArray() const {
+        cout << "Array: ";
+        for (int i = 0; i < size; ++i) {
+            cout << GetAt(i) << " ";
+        }
+        cout << endl;
+    }
+
+private:
+    void initialize() {
+        head = tail = nullptr;
+    }
+
+    void clear() {
+        Node* current = head;
+        while (current) {
+            Node* next = current->next;
+            delete current;
+            current = next;
+        }
+        initialize();
+    }
+
+    Node* getNode(int index) const {
+        Node* current = head;
+        for (int i = 0; i < index; i++) {
             current = current->next;
         }
+        return current;
     }
 
-    Node* getPrev(Node* node) const { return node ? node->prev : nullptr; }
-    Node* getNext(Node* node) const { return node ? node->next : nullptr; }
+    void reserve(int newCapacity) {
+        if (newCapacity > capacity) {
+            capacity = newCapacity;
+        }
+        else {
+            return;
+        }
 
-    void setPrev(Node* node, Node* prev) {
-        if (node) {
-            node->prev = prev;
+        Node* current = head;
+        head = tail = nullptr;
+        while (current) {
+            Node* next = current->next;
+            if (tail == nullptr) {
+                head = tail = new Node(current->data);
+            }
+            else {
+                tail->next = new Node(current->data);
+                tail->next->prev = tail;
+                tail = tail->next;
+            }
+            delete current;
+            current = next;
+        }
+        for (int i = size; i < capacity; i++) {
+            Add(T());
         }
     }
 
-    void setNext(Node* node, Node* next) {
-        if (node) {
-            node->next = next;
+    void removeExcess() {
+        Node* current = getNode(size - 1)->next;
+        while (current) {
+            Node* next = current->next;
+            delete current;
+            current = next;
         }
-    }
-
-    ~DoublyLinkedList() {
-        deleteAll();
     }
 };
 
-template <typename T>
-ostream& operator<<(ostream& os, const typename DoublyLinkedList<T>::Node& node) {
-    os << "Data: " << node.data;
-    if (node.prev) {
-        os << ", Prev: " << node.prev;
-    }
-    else {
-        os << ", Prev: nullptr";
-    }
-    if (node.next) {
-        os << ", Next: " << node.next;
-    }
-    else {
-        os << ", Next: nullptr";
-    }
-    return os;
-}
-
-#endif 
+#endif
